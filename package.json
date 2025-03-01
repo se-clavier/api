@@ -1,0 +1,22 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "cargo run | json2ts -o index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/se-clavier/api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/se-clavier/api/issues"
+  },
+  "homepage": "https://github.com/se-clavier/api#readme",
+  "description": "",
+  "dependencies": {
+    "json-schema-to-typescript": "^15.0.4"
+  }
+}
