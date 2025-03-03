@@ -42,10 +42,10 @@
   (doc #:type type #:enum enum #:api api)
   
   ; Generate Erorr type
-  (printf "pub struct Error { pub code: u16, pub message: String, }\n")
+  (printf "#[derive(serde::Deserialize, serde::Serialize)] pub struct Error { pub code: u16, pub message: String, }\n")
   
   ; Generate Collection
-  (printf "#[allow(non_camel_case_types)] pub enum APICollection {\n")
+  (printf "#[derive(serde::Deserialize, serde::Serialize)] #[allow(non_camel_case_types)] pub enum APICollection {\n")
   (for-api
     (lambda (name req res)
       (printf "~a(~a),\n" name req)))
