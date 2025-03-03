@@ -1,3 +1,2 @@
 /target
-/node_modules
-/index.d.ts
+/src/lib.rs

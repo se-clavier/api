@@ -2,15 +2,13 @@
 
 ## Overview
 
-This repo convert API type definitions in `src/lib.rs` to Json Schema, then to typescript,
-to maintain consistency between the frontend and backend.
+This repo convert API type definitions in `api.rkt` to rust and typescript
+by the power of s-expr and racket language.
 
-This repo is both a rust package (for generate Json Schema) and a npm package 
-(to convert Json Schema to typescript at `index.d.ts`, and to be referenced in frontend).
+This repo is both a rust package and a npm package.
 
 ## Usage
 
 ```
-npm i
-npm run build
+racket rust.rkt < api.rkt > src/lib.rs
 ```
