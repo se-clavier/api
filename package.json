@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "types": "index.d.ts",
   "scripts": {
-    "build": "cargo run | json2ts -o index.d.ts"
+    "build": "cargo run --bin api | json2ts -o index.d.ts"
   },
   "repository": {
     "type": "git",
