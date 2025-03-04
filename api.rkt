@@ -1,4 +1,8 @@
 (lambda (#:api api #:type type #:enum enum)
+  (enum 'Role
+    `[admin]
+    `[user]) 
+
   (type 'User
     `[id uuid]
     `[name string])
