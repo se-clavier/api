@@ -9,6 +9,11 @@ This repo is both a rust package and a npm package.
 
 ## Usage
 
-```
+```shell
+# First install racket
+
+# generate rust interface
 racket rust.rkt < api.rkt > src/lib.rs
+# generate typescript interface
+racket typescript.rkt < api.rkt > index.ts
 ```
