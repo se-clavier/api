@@ -23,7 +23,14 @@
       (string-join 
         (map 
           (lambda (f) 
-            (format "~a(~a)" (car f) (type-alias (cadr f))))
+            (match f
+              [`(,name) (format "~a" name)]
+              [`(,name . ,value) 
+                (format "~a(~a)" 
+                  name
+                  (string-join
+                    (map symbol->string value)
+                    ", "))]))
           fields)
         ", "))
     name)
@@ -48,7 +55,12 @@
   
   ; Generate Collection
   (apply enum
-    (cons 'APICollection api-list))
+    (cons 'APICollection
+      (map
+        (lambda (f)
+          (match f
+            [`(,name ,req ,res) `(,name ,req)]))
+        api-list)))
   
   ; Generate Trait and Router
   (printf "#[allow(async_fn_in_trait)]\n")
