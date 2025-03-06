@@ -34,6 +34,9 @@
           fields)
         ", "))
     name)
+  (define (array name type)
+    (printf "pub type ~a = Vec<~a>;\n" name type)
+    name)
   
   (define api-list '())
   (define (api . v)
@@ -46,7 +49,7 @@
           [`(,name ,req ,res) (f name req res)]))
       api-list))
 
-  (doc #:type type #:enum enum #:api api)
+  (doc #:type type #:enum enum #:api api #:array array)
   
   ; Generate Erorr type
   (type 'Error
