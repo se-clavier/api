@@ -7,6 +7,7 @@ clean:
 
 .PHONY: prepare
 prepare:
+	apt update
 	apt --no-install-recommends install -y racket
 
 src/lib.rs: api.rkt rust.rkt 
