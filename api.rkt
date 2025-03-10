@@ -26,5 +26,13 @@
       `[username string]
       `[password string])
     'LoginResponse)
+  
+  (api 'test_auth_echo
+    #:auth 'user 
+    (type `TestAuthEchoRequest
+      `[data string])
+    (type `TestAuthEchoResponse
+      `[data string])
+  )
 
   (void))
