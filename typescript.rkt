@@ -39,38 +39,31 @@
     name)
   
   (define api-list '())
-  (define (api . v)
+  (define (api name req res #:auth [auth #f])
+    (define (f selector)
+      (match selector
+        ['collection-enum 
+         (cond 
+           [auth `(,name ,req string)]
+           [else `(,name ,req)])]
+        ['api-fn 
+          (cond
+            [auth (printf "async ~a(req: ~a): Promise<~a> { return this.fetch({ ~a: [req, await this.token()] }); }\n" name req res name)]
+            [else (printf "async ~a(req: ~a): Promise<~a> { return this.fetch({ ~a: req }); }\n" name req res name)])]))
     (set! api-list 
-      (cons v api-list)))
-  (define (for-api f)
-    (for-each
-      (lambda (v)
-        (match v 
-          [`(,name ,req ,res) (f name req res)]))
-      api-list))
+      (cons f api-list)))
 
   (doc #:type type #:enum enum #:api api #:array array)
-  
-  ; Generate Erorr type
-  (type 'Error
-    `[code number]
-    `[message string])
   
   ; Generate Collection
   (apply enum
     (cons 'APICollection
-      (map
-        (lambda (f)
-          (match f
-            [`(,name ,req ,res) `(,name ,req)]))
-        api-list)))
+      (map (lambda (f) (f 'collection-enum)) api-list)))
   
   ; Generate api call
   (printf "export class API {\n")
-  (printf "fetch; constructor(fetch: (req: APICollection) => Promise<any>) { this.fetch = fetch; }\n")
-  (for-api
-    (lambda (name req res)
-      (printf "~a(req: ~a): Promise<~a> { return this.fetch({ ~a: req }); }\n" name req res name)))
+  (printf "fetch; token; constructor(fetch: (req: APICollection) => Promise<any>, token: () => Promise<string>) { this.fetch = fetch; this.token = token }\n")
+    (for-each (lambda (f) (f 'api-fn)) api-list)
   (printf "}\n")
 
   (void))

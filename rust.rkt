@@ -2,9 +2,9 @@
 
 (define (type-alias type)
   (match type
-    ['uuid 'u64]
-    ['string 'String]
-    [(? symbol? o) o]))
+    ['uuid "u64"]
+    ['string "String"]
+    [(? symbol? o) (symbol->string o)]))
 
 (define (process doc)
   (define (type name . fields)
@@ -24,12 +24,12 @@
         (map 
           (lambda (f) 
             (match f
-              [`(,name) (format "~a" name)]
+              [`(,name) (format "~a" (type-alias name))]
               [`(,name . ,value) 
                 (format "~a(~a)" 
                   name
                   (string-join
-                    (map symbol->string value)
+                    (map type-alias value)
                     ", "))]))
           fields)
         ", "))
@@ -39,15 +39,20 @@
     name)
   
   (define api-list '())
-  (define (api . v)
+  (define (api name req res #:auth [auth #f])
+    (define (f selector)
+      (match selector
+        ['collection-enum 
+         (cond 
+           [auth `(,name ,req string)]
+           [else `(,name ,req)])]
+        ['trait-fn (printf "async fn ~a(&mut self, req: ~a) -> Result<~a, Error>;\n" name req res)]
+        ['router-match 
+          (cond 
+            [auth (printf "APICollection::~a(req, token) => { let _ = self.validate(Role::~a, &token).await?; Ok(Box::new(self.~a(req).await?)) },\n" name auth name)]
+            [else (printf "APICollection::~a(req) => Ok(Box::new(self.~a(req).await?)),\n" name name)])]))
     (set! api-list 
-      (cons v api-list)))
-  (define (for-api f)
-    (for-each
-      (lambda (v)
-        (match v 
-          [`(,name ,req ,res) (f name req res)]))
-      api-list))
+      (cons f api-list)))
 
   (doc #:type type #:enum enum #:api api #:array array)
   
@@ -59,24 +64,19 @@
   ; Generate Collection
   (apply enum
     (cons 'APICollection
-      (map
-        (lambda (f)
-          (match f
-            [`(,name ,req ,res) `(,name ,req)]))
-        api-list)))
+      (map (lambda (f) (f 'collection-enum)) api-list)))
   
   ; Generate Trait and Router
   (printf "#[allow(async_fn_in_trait)]\n")
   (printf "pub trait API {\n")
-    (for-api
-      (lambda (name req res)
-        (printf "async fn ~a(&mut self, req: ~a) -> Result<~a, Error>;\n" name req res)))
-    ; Generate handler 
+    ; token validator
+    (printf "async fn validate(&self, role: Role, token: &str) -> Result<(), Error>;\n")
+    ; api list
+    (for-each (lambda (f) (f 'trait-fn)) api-list)
+    ; handler 
     (printf "async fn handle(&mut self, req: APICollection) -> Result<Box<dyn dyn_serde::Serialize>, Error> {\n")   
       (printf "match req {\n")
-        (for-api
-          (lambda (name req res)
-            (printf "APICollection::~a(req) => Ok(Box::new(self.~a(req).await?)),\n" name name)))
+        (for-each (lambda (f) (f 'router-match)) api-list)
       (printf "}\n")
     (printf "}\n")
   (printf "}\n")
