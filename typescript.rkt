@@ -62,7 +62,7 @@
   
   ; Generate api call
   (printf "export class API {\n")
-  (printf "fetch; token; constructor(fetch: (req: APICollection) => Promise<any>, token: () => Promise<string>) { this.fetch = fetch; this.token = token }\n")
+  (printf "private fetch; private token; constructor(fetch: (req: APICollection) => Promise<any>, token: () => Promise<string>) { this.fetch = fetch; this.token = token }\n")
     (for-each (lambda (f) (f 'api-fn)) api-list)
   (printf "}\n")
 
