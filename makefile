@@ -13,6 +13,6 @@ prepare:
 src/lib.rs: api.rkt rust.rkt 
 	racket rust.rkt < $< > $@
 
-index.ts: api.rkt rust.rkt
+index.ts: api.rkt typescript.rkt
 	racket typescript.rkt < $< > $@
 
