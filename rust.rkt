@@ -44,12 +44,16 @@
       (match selector
         ['collection-enum 
          (cond 
-           [auth `(,name ,req string)]
+           [auth `(,name ,req Auth)]
            [else `(,name ,req)])]
-        ['trait-fn (printf "async fn ~a(&mut self, req: ~a) -> Result<~a, Error>;\n" name req res)]
+        ['trait-fn
+         (cond
+           [auth (printf "async fn ~a(&mut self, req: ~a, auth: Auth) -> Result<~a, Error>;\n" name req res)]
+           [else (printf "async fn ~a(&mut self, req: ~a) -> Result<~a, Error>;\n" name req res)])]
+        ; ['trait-fn (printf "async fn ~a(&mut self, req: ~a) -> Result<~a, Error>;\n" name req res)]
         ['router-match 
           (cond 
-            [auth (printf "APICollection::~a(req, token) => { let _ = self.validate(Role::~a, &token).await?; Ok(Box::new(self.~a(req).await?)) },\n" name auth name)]
+            [auth (printf "APICollection::~a(req, auth) => { Ok(Box::new(self.~a(req, self.validate(Role::~a, auth).await?).await?)) },\n" name name auth)]
             [else (printf "APICollection::~a(req) => Ok(Box::new(self.~a(req).await?)),\n" name name)])]))
     (set! api-list 
       (cons f api-list)))
@@ -70,7 +74,7 @@
   (printf "#[allow(async_fn_in_trait)]\n")
   (printf "pub trait API {\n")
     ; token validator
-    (printf "async fn validate(&self, role: Role, token: &str) -> Result<(), Error>;\n")
+    (printf "async fn validate(&self, role: Role, auth: Auth) -> Result<Auth, Error>;\n")
     ; api list
     (for-each (lambda (f) (f 'trait-fn)) api-list)
     ; handler 

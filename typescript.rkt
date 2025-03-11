@@ -44,11 +44,11 @@
       (match selector
         ['collection-enum 
          (cond 
-           [auth `(,name ,req string)]
+           [auth `(,name ,req Auth)]
            [else `(,name ,req)])]
         ['api-fn 
           (cond
-            [auth (printf "async ~a(req: ~a): Promise<~a> { return this.fetch({ ~a: [req, await this.token()] }); }\n" name req res name)]
+            [auth (printf "async ~a(req: ~a): Promise<~a> { return this.fetch({ ~a: [req, await this.auth()] }); }\n" name req res name)]
             [else (printf "async ~a(req: ~a): Promise<~a> { return this.fetch({ ~a: req }); }\n" name req res name)])]))
     (set! api-list 
       (cons f api-list)))
@@ -62,7 +62,7 @@
   
   ; Generate api call
   (printf "export class API {\n")
-  (printf "private fetch; private token; constructor(fetch: (req: APICollection) => Promise<any>, token: () => Promise<string>) { this.fetch = fetch; this.token = token }\n")
+  (printf "private fetch; private auth; constructor(fetch: (req: APICollection) => Promise<any>, auth: () => Promise<Auth>) { this.fetch = fetch; this.auth = auth }\n")
     (for-each (lambda (f) (f 'api-fn)) api-list)
   (printf "}\n")
 
