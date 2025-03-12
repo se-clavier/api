@@ -17,8 +17,15 @@
           fields)
         ", "))
     name)
-  (define (enum name . fields)
-    (printf "#[allow(non_camel_case_types)] #[derive(serde::Deserialize, serde::Serialize)] pub enum ~a { ~a }\n"
+  (define (enum name #:spec [spec '()] . fields)
+    (printf "#[allow(non_camel_case_types)] #[derive(~a)] pub enum ~a { ~a }\n"
+      (string-join
+        `("serde::Deserialize"
+          "serde::Serialize"
+          . ,(match (assv 'rust-derive spec)
+            [`(,name . ,values) values]
+            [else '()]))
+        ", ")
       name
       (string-join 
         (map 

@@ -4,7 +4,9 @@
   ; An api requires exactly one role to access
   (enum 'Role
     `[admin]
-    `[user]) 
+    `[user]
+    #:spec `(
+      [rust-derive ,"PartialEq" ,"Eq"])) 
 
   (type 'Auth
     `[id uuid]

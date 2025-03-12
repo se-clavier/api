@@ -16,7 +16,7 @@
           fields)
         "; "))
     name)
-  (define (enum name . fields)
+  (define (enum name #:spec [spec '()] . fields)
     (printf "export type ~a = ~a\n"
       name
       (string-join 
