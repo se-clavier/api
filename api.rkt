@@ -4,16 +4,20 @@
   ; An api requires exactly one role to access
   (enum 'Role
     `[admin]
-    `[user]) 
+    `[user]
+    #:spec `(
+      [rust-derive ,"PartialEq" ,"Eq"])) 
 
-  (type 'User
+  (type 'Auth
     `[id uuid]
-    `[name string]
-    `[roles ,(array 'Roles 'Role)])
+    `[roles ,(array 'Roles 'Role)]
+    `[signature string])
+  (type 'User
+    `[username string])
 
   (type `LoginResponse
-    `[user User]
-    `[token string])
+    `[auth Auth]
+    `[user User])
 
   (api 'register 
     (type `RegisterRequest
@@ -26,5 +30,12 @@
       `[username string]
       `[password string])
     'LoginResponse)
+  
+  (api 'test_auth_echo
+    #:auth 'user 
+    (type `TestAuthEchoRequest
+      `[data string])
+    (type `TestAuthEchoResponse
+      `[data string]))
 
   (void))
