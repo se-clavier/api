@@ -1,4 +1,6 @@
-(lambda (#:api api #:type type #:enum enum #:array array)
+#lang racket
+
+(define (api #:api api #:type type #:enum enum #:array array)
   ; Permission controlled by Role
   ; A user may have multiple roles (e.g. admin and user)
   ; An api requires exactly one role to access
@@ -39,3 +41,5 @@
       `[data string]))
 
   (void))
+
+(provide api)

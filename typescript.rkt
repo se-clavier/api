@@ -1,5 +1,7 @@
 #lang racket
 
+(require "api.rkt")
+
 (define (type-alias type)
   (match type
     ['uuid 'number]
@@ -16,7 +18,7 @@
           fields)
         "; "))
     name)
-  (define (enum name #:spec [spec '()] . fields)
+  (define (enum name #:spec [_ '()] . fields)
     (printf "export type ~a = ~a\n"
       name
       (string-join 
@@ -68,7 +70,4 @@
 
   (void))
 
-(process 
-  (eval 
-    (read) 
-    (make-base-namespace)))
+(process api)
