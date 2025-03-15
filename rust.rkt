@@ -1,5 +1,7 @@
 #lang racket
 
+(require "api.rkt")
+
 (define (type-alias type)
   (match type
     ['uuid "u64"]
@@ -23,8 +25,8 @@
         `("serde::Deserialize"
           "serde::Serialize"
           . ,(match (assv 'rust-derive spec)
-            [`(,name . ,values) values]
-            [else '()]))
+            [`('rust-derive . ,values) values]
+            [_ '()]))
         ", ")
       name
       (string-join 
@@ -94,7 +96,4 @@
 
   (void))
 
-(process 
-  (eval 
-    (read) 
-    (make-base-namespace)))
+(process api)
