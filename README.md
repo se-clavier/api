@@ -11,5 +11,5 @@ This repo is both a rust package and a npm package.
 
 ```shell
 make prepare # install racket
-make .       # generate index.ts and src/lib.rs
+make         # generate index.ts and src/lib.rs
 ```
