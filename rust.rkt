@@ -25,7 +25,7 @@
         `("serde::Deserialize"
           "serde::Serialize"
           . ,(match (assv 'rust-derive spec)
-            [`('rust-derive . ,values) values]
+            [`(rust-derive . ,values) values]
             [_ '()]))
         ", ")
       name
