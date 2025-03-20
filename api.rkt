@@ -1,6 +1,9 @@
 #lang racket
 
-(define (api #:api api #:type type #:enum enum #:array array)
+(define (api #:api api #:type type #:enum enum #:array array #:option option #:alias alias)
+  (alias 'Timestamp 'uint) ; unix timestamp
+  (alias 'Id 'uint) ; universal-unique identifier for indexing
+
   ; Permission controlled by Role
   ; A user may have multiple roles (e.g. admin and user)
   ; An api requires exactly one role to access
@@ -11,12 +14,15 @@
       [rust-derive ,"PartialEq" ,"Eq"])) 
 
   (type 'Auth
-    `[id uuid]
+    `[id Id]
     `[roles ,(array 'Roles 'Role)]
     `[signature string])
-  (type 'User
-    `[username string])
 
+  ; User's basic information, visible to all
+  (type 'User
+    `[name string])
+
+  ; User management
   (type `LoginResponse
     `[auth Auth]
     `[user User])
@@ -39,6 +45,42 @@
       `[data string])
     (type `TestAuthEchoResponse
       `[data string]))
+
+  ; Room identifier
+  (alias 'Room 'string)
+
+  ; Visible to user
+  (type 'Spare
+    `[id Id] ; unique id for indexing
+    `[room Room]
+    `[begin_time Timestamp]
+    `[end_time Timestamp]
+    `[assignee ,(option 'User)] ; none if not assigned
+    )
+
+  ; list all rooms and spares within a time range
+  (api 'spare_list
+    #:auth 'user
+    (type `SpareListRequest
+      `[begin_time Timestamp]
+      `[end_time Timestamp])
+    (type `SpareListResponse
+      `[rooms ,(array 'Rooms 'Room)]
+      `[spares ,(array 'Spares 'Spare)]))
+
+  ; take a spare by id
+  (api 'spare_take
+    #:auth 'user
+    (type `SpareTakeRequest
+      `[id Id])
+    (type `SpareTakeResponse))
+
+  ; return a spare by id
+  (api 'spare_return
+    #:auth 'user
+    (type `SpareReturnRequest
+      `[id Id])
+    (type `SpareReturnResponse))
 
   (void))
 
