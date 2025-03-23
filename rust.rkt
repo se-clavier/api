@@ -4,9 +4,10 @@
 
 (define (type-alias type)
   (match type
-    ['uuid "u64"]
+    ['uint "u64"]
     ['string "String"]
-    [(? symbol? o) (symbol->string o)]))
+    [(? symbol? o) (symbol->string o)]
+    [(? string? o) o]))
 
 (define (process doc)
   (define (type name . fields)
@@ -46,6 +47,11 @@
   (define (array name type)
     (printf "pub type ~a = Vec<~a>;\n" name type)
     name)
+  (define (option type)
+    (format "Option<~a>" (type-alias type)))
+  (define (alias name type)
+    (printf "pub type ~a = ~a;\n" name (type-alias type))
+    name)
   
   (define api-list '())
   (define (api name req res #:auth [auth #f])
@@ -67,7 +73,7 @@
     (set! api-list 
       (cons f api-list)))
 
-  (doc #:type type #:enum enum #:api api #:array array)
+  (doc #:type type #:enum enum #:api api #:array array #:option option #:alias alias)
   
   ; Generate Erorr type
   (type 'Error
