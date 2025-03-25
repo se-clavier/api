@@ -25,17 +25,9 @@
       (string-join
         (map
           (lambda (f)
-            (begin
-            )
             (match f
-              [`(,name) (format "\"~a\"" name)]
-              [`(,name ,value) (format "{ ~a: ~a }" name value)]
-              [`(,name . ,values)
-                (format "{ ~a: [~a] }"
-                  name
-                  (string-join
-                    (map symbol->string values)
-                    ", "))]))
+              [`(,name) (format "{ type: '~a' }" name)]
+              [`(,name ,value) (format "({ type: '~a' } & ~a)" name value)]))
           fields)
         " | "))
     name)
@@ -54,25 +46,29 @@
       (match selector
         ['collection-enum
          (cond
-           [auth `(,name ,req Auth)]
+           [auth `(,name ,(format "Authed<~a>" req))]
            [else `(,name ,req)])]
         ['api-fn
           (cond
             [auth (printf
               "async ~a(req: ~a): Promise<~a> {
-                return this._fetch(async auth => ({ ~a: [req, await auth()] }))
+                return this._fetch(async auth => ({
+                  type: '~a',
+                  auth: await auth(),
+                  req,
+                }))
               }\n" name req res name)]
             [else (printf
               "async ~a(req: ~a): Promise<~a> {
-                return this._fetch(async _ => ({ ~a: req }))
+                return this._fetch(async _ => ({
+                  type: '~a',
+                  ...req,
+                }))
               }\n" name req res name)])]))
     (set! api-list
       (cons f api-list)))
 
   (doc #:type type #:enum enum #:api api #:array array #:option option #:alias alias)
-
-  ; Generate template Result type
-  (printf "type Result<T> = { Ok: T } | \"Unauthorized\"\n")
 
   ; Generate Collection
   (apply enum
@@ -89,10 +85,10 @@
         const req = await req_unauth(async () => {
           if (!auth || refresh_auth) {
             let login_res = await this.login(await get_login())
-            if (login_res === 'FailureIncorrect') {
-              throw new Error(login_res)
+            if (login_res.type !== 'Success') {
+              throw new Error(login_res.type)
             } else {
-              auth = login_res.Success
+              auth = login_res
             }
           }
           return auth;
@@ -112,16 +108,3 @@
   (void))
 
 (process api)
-
-  ; private _fetch;
-  ; constructor(fetch: (req: APICollection) => Promise<any>, get_login: () => LoginRequest) {
-  ;   let token: Auth | undefined = undefined
-  ;   this._fetch = async (req: APICollection, require_auth: boolean, refresh_auth: boolean = false) => {
-  ;     if (!token || refresh_auth) {
-  ;       let login_res = await this.login(get_login())
-  ;       if (login_res) {
-  ;         token = login_res.Success
-  ;       }
-  ;     }
-  ;   }
-  ; }

@@ -4,6 +4,11 @@
   (begin ; Common definitions
     (alias 'Timestamp 'uint) ; unix timestamp
     (alias 'Id 'uint) ; universal-unique identifier for indexing
+
+    ; API Result type
+    (enum 'Result<T>
+      `[Ok T]
+      `[Unauthorized])
   )
 
   (begin ; User
@@ -20,6 +25,10 @@
       `[id Id]
       `[roles ,(array 'Roles 'Role)]
       `[signature string])
+    ; Template for authenticated requests
+    (type 'Authed<T>
+      `[auth Auth]
+      `[req T])
 
     ; User's basic information, visible to all
     (type 'User
