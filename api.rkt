@@ -30,18 +30,19 @@
       (type `RegisterRequest
         `[username string]
         `[password string])
-      (enum `LoginResponse
+      (enum `RegisterResponse
         `[Success Auth] 
-        `[FailureIncorrect]))
+        `[FailureUsernameTaken]
+        `[FailureUsernameInvalid]
+        `[FailurePasswordInvalid]))
     
     (api 'login 
       (type `LoginRequest
         `[username string]
         `[password string])
-      (enum `RegisterResponse
+      (enum `LoginResponse
         `[Success Auth] 
-        `[FailureUsernameTaken]
-        `[FailurePasswordInvalid]))
+        `[FailureIncorrect]))
     
     (api 'test_auth_echo
       #:auth 'user 

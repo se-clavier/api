@@ -13,9 +13,9 @@
   (define (type name . fields)
     (printf "#[derive(serde::Deserialize, serde::Serialize)] pub struct ~a { ~a }\n"
       name
-      (string-join 
-        (map 
-          (lambda (f) 
+      (string-join
+        (map
+          (lambda (f)
             (format "pub ~a: ~a" (car f) (type-alias (cadr f))))
           fields)
         ", "))
@@ -30,13 +30,13 @@
             [_ '()]))
         ", ")
       name
-      (string-join 
-        (map 
-          (lambda (f) 
+      (string-join
+        (map
+          (lambda (f)
             (match f
               [`(,name) (format "~a" (type-alias name))]
-              [`(,name . ,value) 
-                (format "~a(~a)" 
+              [`(,name . ,value)
+                (format "~a(~a)"
                   name
                   (string-join
                     (map type-alias value)
@@ -52,48 +52,59 @@
   (define (alias name type)
     (printf "pub type ~a = ~a;\n" name (type-alias type))
     name)
-  
+
   (define api-list '())
   (define (api name req res #:auth [auth #f])
     (define (f selector)
       (match selector
-        ['collection-enum 
-         (cond 
+        ['collection-enum
+         (cond
            [auth `(,name ,req Auth)]
            [else `(,name ,req)])]
         ['trait-fn
          (cond
-           [auth (printf "async fn ~a(&mut self, req: ~a, auth: Auth) -> Result<~a, Error>;\n" name req res)]
-           [else (printf "async fn ~a(&mut self, req: ~a) -> Result<~a, Error>;\n" name req res)])]
-        ; ['trait-fn (printf "async fn ~a(&mut self, req: ~a) -> Result<~a, Error>;\n" name req res)]
-        ['router-match 
-          (cond 
-            [auth (printf "APICollection::~a(req, auth) => { Ok(Box::new(self.~a(req, self.validate(Role::~a, auth).await?).await?)) },\n" name name auth)]
-            [else (printf "APICollection::~a(req) => Ok(Box::new(self.~a(req).await?)),\n" name name)])]))
-    (set! api-list 
+           [auth (printf "async fn ~a(&mut self, _req: ~a, _auth: Auth) -> ~a { todo!(); }\n" name req res)]
+           [else (printf "async fn ~a(&mut self, _req: ~a) -> ~a { todo!(); } \n" name req res)])]
+        ['router-match
+          (cond
+            [auth (printf
+              "APICollection::~a(req, auth) => {
+                Box::new(match self.validate(Role::~a, auth).await {
+                  Result::Ok(auth) => Result::Ok(self.~a(req, auth).await),
+                  Result::Unauthorized => Result::Unauthorized,
+                })
+              }\n"
+              name auth name)]
+            [else (printf
+              "APICollection::~a(req) => {
+                Box::new(Result::Ok(self.~a(req).await))
+              }\n"
+              name name)])]))
+    (set! api-list
       (cons f api-list)))
 
   (doc #:type type #:enum enum #:api api #:array array #:option option #:alias alias)
-  
-  ; Generate Erorr type
-  (type 'Error
-    `[code u16]
-    `[message string])
-  
+
+  ; Generate template Result type
+  (printf "#[derive(serde::Serialize)] pub enum Result<T> {
+    Ok(T),
+    Unauthorized,
+  }\n")
+
   ; Generate Collection
   (apply enum
     (cons 'APICollection
       (map (lambda (f) (f 'collection-enum)) api-list)))
-  
+
   ; Generate Trait and Router
   (printf "#[allow(async_fn_in_trait)]\n")
   (printf "pub trait API {\n")
     ; token validator
-    (printf "async fn validate(&self, role: Role, auth: Auth) -> Result<Auth, Error>;\n")
+    (printf "async fn validate(&self, _role: Role, _auth: Auth) -> Result<Auth> { todo!(); } \n")
     ; api list
     (for-each (lambda (f) (f 'trait-fn)) api-list)
-    ; handler 
-    (printf "async fn handle(&mut self, req: APICollection) -> Result<Box<dyn dyn_serde::Serialize>, Error> {\n")   
+    ; handler
+    (printf "async fn handle(&mut self, req: APICollection) -> Box<dyn dyn_serde::Serialize> {\n")
       (printf "match req {\n")
         (for-each (lambda (f) (f 'router-match)) api-list)
       (printf "}\n")
