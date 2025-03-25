@@ -26,21 +26,22 @@
       `[name string])
 
     ; User management
-    (type `LoginResponse
-      `[auth Auth]
-      `[user User])
-
     (api 'register 
       (type `RegisterRequest
         `[username string]
         `[password string])
-      'LoginResponse)
+      (enum `LoginResponse
+        `[Success Auth] 
+        `[FailureIncorrect]))
     
     (api 'login 
       (type `LoginRequest
         `[username string]
         `[password string])
-      'LoginResponse)
+      (enum `RegisterResponse
+        `[Success Auth] 
+        `[FailureUsernameTaken]
+        `[FailurePasswordInvalid]))
     
     (api 'test_auth_echo
       #:auth 'user 
