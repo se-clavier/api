@@ -11,7 +11,9 @@
 
 (define (process doc)
   (define (type name . fields)
-    (printf "#[derive(serde::Deserialize, serde::Serialize)] pub struct ~a { ~a }\n"
+    (printf
+      "#[derive(serde::Deserialize, serde::Serialize)]
+       pub struct ~a { ~a }\n"
       name
       (string-join
         (map
@@ -21,7 +23,11 @@
         ", "))
     name)
   (define (enum name #:spec [spec '()] . fields)
-    (printf "#[allow(non_camel_case_types)] #[derive(~a)] pub enum ~a { ~a }\n"
+    (printf
+      "#[allow(non_camel_case_types)]
+       #[derive(~a)]
+       #[serde(tag = \"type\")]
+       pub enum ~a { ~a }\n"
       (string-join
         `("serde::Deserialize"
           "serde::Serialize"
@@ -35,12 +41,8 @@
           (lambda (f)
             (match f
               [`(,name) (format "~a" (type-alias name))]
-              [`(,name . ,value)
-                (format "~a(~a)"
-                  name
-                  (string-join
-                    (map type-alias value)
-                    ", "))]))
+              [`(,name ,value)
+                (format "~a(~a)" name value)]))
           fields)
         ", "))
     name)
@@ -59,7 +61,7 @@
       (match selector
         ['collection-enum
          (cond
-           [auth `(,name ,req Auth)]
+           [auth `(,name ,(format "Authed<~a>" req))]
            [else `(,name ,req)])]
         ['trait-fn
          (cond
@@ -68,13 +70,13 @@
         ['router-match
           (cond
             [auth (printf
-              "APICollection::~a(req, auth) => {
+              "APICollection::~a(Authed::<~a>{auth, req}) => {
                 Box::new(match self.validate(Role::~a, auth).await {
                   Result::Ok(auth) => Result::Ok(self.~a(req, auth).await),
                   Result::Unauthorized => Result::Unauthorized,
                 })
               }\n"
-              name auth name)]
+              name req auth name)]
             [else (printf
               "APICollection::~a(req) => {
                 Box::new(Result::Ok(self.~a(req).await))
@@ -84,12 +86,6 @@
       (cons f api-list)))
 
   (doc #:type type #:enum enum #:api api #:array array #:option option #:alias alias)
-
-  ; Generate template Result type
-  (printf "#[derive(serde::Serialize)] pub enum Result<T> {
-    Ok(T),
-    Unauthorized,
-  }\n")
 
   ; Generate Collection
   (apply enum
