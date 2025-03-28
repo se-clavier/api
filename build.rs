@@ -12,10 +12,10 @@ fn api() -> Result<(), String> {
     Ok(())
 }
 fn main() {
-    println!("cargo:rerun-if-changed=rust.rkt");
-    println!("cargo:rerun-if-changed=api.rkt");
-    println!("cargo:rerun-if-changed=src");
+    println!("cargo::rerun-if-changed=rust.rkt");
+    println!("cargo::rerun-if-changed=api.rkt");
+    println!("cargo::rerun-if-changed=src");
     if let Err(s) = api() {
-        println!("cargo:error=Failed to generate API bindings: {}", s);
+        println!("cargo::error=Failed to generate API bindings: {}", s);
     }
 }
