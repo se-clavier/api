@@ -80,18 +80,11 @@
   ; Generate api call
   (printf "export class API {
     private _fetch;
-    constructor(fetch: (req: APICollection) => Promise<any>, get_auth: () => Promise<Auth>) {
-      let auth: Auth | undefined = undefined
+    constructor(fetch: (req: APICollection) => Promise<any>, get_auth: (refresh: boolean) => Promise<Auth>) {
       this._fetch = async (req_unauth: (auth: () => Promise<Auth>) => Promise<APICollection>,
-        refresh_auth: boolean = false): Promise<any> => {
-        const req = await req_unauth(async () => {
-          if (!auth || refresh_auth) {
-            auth = await get_auth()
-          }
-          return auth;
-        })
-
-        let res = await fetch(req)
+                           refresh_auth: boolean = false): Promise<any> => {
+        const req = await req_unauth(() => get_auth(refresh_auth))
+        const res = await fetch(req)
         if (res.type === 'Unauthorized') {
           return this._fetch(req_unauth, true)
         } else {
