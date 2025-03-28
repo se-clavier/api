@@ -26,7 +26,7 @@
     (printf
       "#[allow(non_camel_case_types)]
        #[derive(~a)]
-       #[serde(tag = \"type\")]
+       #[serde(tag = \"type\", content = \"content\")]
        pub enum ~a { ~a }\n"
       (string-join
         `("serde::Deserialize"

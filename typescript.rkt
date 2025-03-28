@@ -27,7 +27,7 @@
           (lambda (f)
             (match f
               [`(,name) (format "{ type: '~a' }" name)]
-              [`(,name ,value) (format "({ type: '~a' } & ~a)" name value)]))
+              [`(,name ,value) (format "{ type: '~a', content: ~a }" name value)]))
           fields)
         " | "))
     name)
@@ -54,15 +54,17 @@
               "async ~a(req: ~a): Promise<~a> {
                 return this._fetch(async auth => ({
                   type: '~a',
-                  auth: await auth(),
-                  req,
+                  content: {
+                    auth: await auth(),
+                    req,
+                  }
                 }))
               }\n" name req res name)]
             [else (printf
               "async ~a(req: ~a): Promise<~a> {
                 return this._fetch(async _ => ({
                   type: '~a',
-                  ...req,
+                  content: req,
                 }))
               }\n" name req res name)])]))
     (set! api-list
@@ -90,10 +92,10 @@
         })
 
         let res = await fetch(req)
-        if (res === 'Unauthorized') {
+        if (res.type === 'Unauthorized') {
           return this._fetch(req_unauth, true)
         } else {
-          return res.Ok
+          return res.content
         }
       }
     }\n")
