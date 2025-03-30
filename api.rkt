@@ -32,7 +32,8 @@
 
     ; User's basic information, visible to all
     (type 'User
-      `[name string])
+      `[id Id]
+      `[username string])
 
     ; User management
     (api 'register 
@@ -52,6 +53,8 @@
       (enum `LoginResponse
         `[Success Auth] 
         `[FailureIncorrect]))
+    
+    (api 'get_user `Id `User)
     
     (api 'test_auth_echo
       #:auth 'user 
