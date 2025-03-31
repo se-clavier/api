@@ -1,21 +1,13 @@
 use std::{fs::File, process::Command};
 
-fn api() -> Result<(), String> {
+fn main() {
     let status = Command::new("racket")
         .arg("rust.rkt")
-        .stdout(File::create("src/api.rs").map_err(|e| e.to_string())?)
+        .stdout(File::create("src/api.rs").expect("failed to create src/api.rs"))
         .status()
-        .map_err(|e| e.to_string())?;
-    if !status.success() {
-        return Err(format!("{}", status));
-    }
-    Ok(())
-}
-fn main() {
+        .expect("failed to run racket");
+    assert!(status.success(), "racket failed with status: {}", status);
     println!("cargo::rerun-if-changed=rust.rkt");
     println!("cargo::rerun-if-changed=api.rkt");
     println!("cargo::rerun-if-changed=src");
-    if let Err(s) = api() {
-        println!("cargo::error=Failed to generate API bindings: {}", s);
-    }
 }

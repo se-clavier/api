@@ -65,8 +65,8 @@
            [else `(,name ,req)])]
         ['trait-fn
          (cond
-           [auth (printf "async fn ~a(&mut self, _req: ~a, _auth: Auth) -> ~a { todo!(); }\n" name req res)]
-           [else (printf "async fn ~a(&mut self, _req: ~a) -> ~a { todo!(); } \n" name req res)])]
+           [auth (printf "async fn ~a(&self, _req: ~a, _auth: Auth) -> ~a { todo!(); }\n" name req res)]
+           [else (printf "async fn ~a(&self, _req: ~a) -> ~a { todo!(); } \n" name req res)])]
         ['router-match
           (cond
             [auth (printf
@@ -100,7 +100,7 @@
     ; api list
     (for-each (lambda (f) (f 'trait-fn)) api-list)
     ; handler
-    (printf "async fn handle(&mut self, req: APICollection) -> Box<dyn dyn_serde::Serialize> {\n")
+    (printf "async fn handle(&self, req: APICollection) -> Box<dyn dyn_serde::Serialize> {\n")
       (printf "match req {\n")
         (for-each (lambda (f) (f 'router-match)) api-list)
       (printf "}\n")

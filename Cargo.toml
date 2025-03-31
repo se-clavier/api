@@ -7,3 +7,4 @@ build = "build.rs"
 [dependencies]
 dyn_serde = "1.0.2"
 serde = { version = "1.0.218", features = ["derive"] }
+sqlx = "0.8.3"
