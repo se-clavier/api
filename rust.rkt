@@ -9,11 +9,24 @@
     [(? symbol? o) (symbol->string o)]
     [(? string? o) o]))
 
+(define (process-derive [spec '()])
+  (string-join
+    `("serde::Deserialize"
+      "serde::Serialize"
+      "PartialEq"
+      "Eq"
+      "Debug"
+      . ,(match (assv 'rust-derive spec)
+        [`(rust-derive . ,values) values]
+        [_ '()]))
+    ", "))
+
 (define (process doc)
   (define (type name . fields)
     (printf
-      "#[derive(serde::Deserialize, serde::Serialize)]
+      "#[derive(~a)]
        pub struct ~a { ~a }\n"
+      (process-derive)
       name
       (string-join
         (map
@@ -28,13 +41,7 @@
        #[derive(~a)]
        #[serde(tag = \"type\", content = \"content\")]
        pub enum ~a { ~a }\n"
-      (string-join
-        `("serde::Deserialize"
-          "serde::Serialize"
-          . ,(match (assv 'rust-derive spec)
-            [`(rust-derive . ,values) values]
-            [_ '()]))
-        ", ")
+      (process-derive spec)
       name
       (string-join
         (map
