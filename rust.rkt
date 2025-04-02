@@ -16,6 +16,7 @@
       "PartialEq"
       "Eq"
       "Debug"
+      "Clone"
       . ,(match (assv 'rust-derive spec)
         [`(rust-derive . ,values) values]
         [_ '()]))
