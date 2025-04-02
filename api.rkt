@@ -19,7 +19,7 @@
       `[admin]
       `[user]
       #:spec `(
-        [rust-derive ,"PartialEq" ,"Eq", "Debug", "sqlx::Type"]))
+        [rust-derive ,"sqlx::Type"]))
 
     (type 'Auth
       `[id Id]
