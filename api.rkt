@@ -3,6 +3,7 @@
 (define (api #:api api #:type type #:enum enum #:array array #:option option #:alias alias)
   (begin ; Common definitions
     (alias 'Timestamp 'uint) ; unix timestamp
+    (alias 'Timediff 'uint) ; unix timestamp difference
     (alias 'Id 'uint) ; universal-unique identifier for indexing
 
     ; API Result type
@@ -70,19 +71,21 @@
 
     ; Visible to user
     (type 'Spare
-      `[id Id] ; unique id for indexing
+      `[id Id] ; unique index
+      `[stamp Id] ; the index in a week
+      `[week Timestamp] ; the timestamp of Monday 0am at the week
+      `[begin_time Timediff] ; difference from the week timestamp
+      `[end_time Timediff] ; difference from the week timestamp
       `[room Room]
-      `[begin_time Timestamp]
-      `[end_time Timestamp]
       `[assignee ,(option 'User)] ; none if not assigned
       )
 
     ; list all rooms and spares within a time range
     (api 'spare_list
       #:auth 'user
-      (type `SpareListRequest
-        `[begin_time Timestamp]
-        `[end_time Timestamp])
+      (enum `SpareListRequest
+        `[Schedule] ; request the spare schedule, used in spare_questionaire
+        `[Week Timestamp]) ; request the spare list at a certain week
       (type `SpareListResponse
         `[rooms ,(array 'Rooms 'Room)]
         `[spares ,(array 'Spares 'Spare)]))
@@ -100,6 +103,18 @@
       (type `SpareReturnRequest
         `[id Id])
       (type `SpareReturnResponse))
+    
+    ; spare questionaire
+    (api 'spare_questionaire
+      #:auth 'user
+      (type `SpareQuestionaireRequest
+        `[vacancy 
+          ,(array `VacancyArray
+            (enum `Vacancy
+              `[Available]
+              `[Unavailable]))])
+      (enum `SpareQuestionaireResponse
+        `[Success]))
   )
 
   (void))
