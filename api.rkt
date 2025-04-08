@@ -64,6 +64,15 @@
         `[Success]
         `[FailurePasswordInvalid]))
     
+    (api 'reset_password_admin
+      #:auth 'admin
+      (type `ResetPasswordAdminRequest
+        `[id Id]
+        `[password string])
+      (enum `ResetPasswordAdminResponse
+        `[Success]
+        `[FailureUserNotFound]))
+    
     (api 'test_auth_echo
       #:auth 'user 
       (type `TestAuthEchoRequest
