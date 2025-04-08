@@ -56,6 +56,14 @@
     
     (api 'get_user `Id `User)
     
+    (api 'reset_password
+      #:auth 'user
+      (type `ResetPasswordRequest
+        `[password string])
+      (enum `ResetPasswordResponse
+        `[Success]
+        `[FailurePasswordInvalid]))
+    
     (api 'test_auth_echo
       #:auth 'user 
       (type `TestAuthEchoRequest
