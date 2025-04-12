@@ -89,7 +89,19 @@
               "APICollection::~a(req) => {
                 Box::new(Result::Ok(self.~a(req).await))
               }\n"
-              name name)])]))
+              name name)])]
+        ['rev-trait-fn
+          (cond
+            [auth (printf 
+              "async fn ~a(&self, req: ~a, auth: Auth) -> ~a {
+                self.request(APICollection::~a(Authed::<~a>{auth, req})).await
+              }\n"
+              name req res name req)]
+            [else (printf 
+              "async fn ~a(&self, req: ~a) -> ~a {
+                self.request(APICollection::~a(req)).await
+              }\n"
+              name req res name)])]))
     (set! api-list
       (cons f api-list)))
 
@@ -115,6 +127,14 @@
     (printf "}\n")
   (printf "}\n")
 
+  ; Generate Rev API Trait
+  (printf "#[allow(async_fn_in_trait)]\n")
+  (printf "pub trait RevAPI {\n")
+    ; handler
+    (printf "async fn request<T: serde::de::DeserializeOwned + std::fmt::Debug>(&self, req: APICollection) -> T;\n")
+    
+    (for-each (lambda (f) (f 'rev-trait-fn)) api-list)
+  (printf "}\n")
   (void))
 
 (process api)
