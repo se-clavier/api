@@ -2,8 +2,8 @@
 
 (define (api #:api api #:type type #:enum enum #:array array #:option option #:alias alias)
   (begin ; Common definitions
-    (alias 'Timestamp 'uint) ; unix timestamp
-    (alias 'Timediff 'uint) ; unix timestamp difference
+    (alias 'TimeWeek 'str) ; ISO 8601 week
+    (alias 'Timediff 'str) ; ISO 8601 time difference
     (alias 'Id 'uint) ; universal-unique identifier for indexing
 
     ; API Result type
