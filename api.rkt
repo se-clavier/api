@@ -2,8 +2,8 @@
 
 (define (api #:api api #:type type #:enum enum #:array array #:option option #:alias alias)
   (begin ; Common definitions
-    (alias 'TimeWeek 'str) ; ISO 8601 week
-    (alias 'Timediff 'str) ; ISO 8601 time difference
+    (alias 'TimeWeek 'string) ; ISO 8601 week
+    (alias 'TimeDiff 'string) ; ISO 8601 time difference
     (alias 'Id 'uint) ; universal-unique identifier for indexing
 
     ; API Result type
@@ -85,25 +85,27 @@
   (begin ; Spare
     ; Room identifier
     (alias 'Room 'string)
+    (array 'Rooms 'Room)
 
     ; Visible to user
     (type 'Spare
       `[id Id] ; unique index, 0 for schedule
       `[stamp Id] ; the index in a week
-      `[week Timestamp] ; the timestamp of Monday 0am at the week
-      `[begin_time Timediff] ; difference from the week timestamp
-      `[end_time Timediff] ; difference from the week timestamp
+      `[week TimeWeek] ; the timestamp of Monday 0am at the week
+      `[begin_time TimeDiff] ; difference from the week timestamp
+      `[end_time TimeDiff] ; difference from the week timestamp
       `[room Room]
       `[assignee ,(option 'User)] ; none if not assigned
       )
+    (array 'Spares 'Spare)
     
     ; init spare list
     ; this will erase all existing spares
     (api 'spare_init
       #:auth 'admin
       (type `SpareInitRequest
-        `[rooms ,(array 'Rooms 'Room)]
-        `[spares ,(array 'Spares 'Spare)])
+        `[rooms Rooms]
+        `[spares Spares])
       (enum `SpareInitResponse
         `[Success]))
 
@@ -112,10 +114,10 @@
       #:auth 'user
       (enum `SpareListRequest
         `[Schedule] ; request the spare schedule, used in spare_questionaire
-        `[Week Timestamp]) ; request the spare list at a certain week
+        `[Week TimeWeek]) ; request the spare list at a certain week
       (type `SpareListResponse
-        `[rooms ,(array 'Rooms 'Room)]
-        `[spares ,(array 'Spares 'Spare)]))
+        `[rooms Rooms]
+        `[spares Spares]))
 
     ; take a spare by id
     (api 'spare_take
