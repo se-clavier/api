@@ -88,7 +88,7 @@
 
     ; Visible to user
     (type 'Spare
-      `[id Id] ; unique index
+      `[id Id] ; unique index, 0 for schedule
       `[stamp Id] ; the index in a week
       `[week Timestamp] ; the timestamp of Monday 0am at the week
       `[begin_time Timediff] ; difference from the week timestamp
@@ -96,6 +96,16 @@
       `[room Room]
       `[assignee ,(option 'User)] ; none if not assigned
       )
+    
+    ; init spare list
+    ; this will erase all existing spares
+    (api 'spare_init
+      #:auth 'admin
+      (type `SpareInitRequest
+        `[rooms ,(array 'Rooms 'Room)]
+        `[spares ,(array 'Spares 'Spare)])
+      (enum `SpareInitResponse
+        `[Success]))
 
     ; list all rooms and spares within a time range
     (api 'spare_list
