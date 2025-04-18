@@ -89,9 +89,9 @@
 
     ; Visible to user
     (type 'Spare
-      `[id Id] ; unique index, 0 for schedule
-      `[stamp Id] ; the index in a week
-      `[week TimeWeek] ; the timestamp of Monday 0am at the week
+      `[id Id] ; unique index
+      `[stamp Id] ; the index in a week, same as the index in spare_init list
+      `[week TimeWeek] ; the week that this spare belongs to, in ISO 8601 format
       `[begin_time TimeDiff] ; difference from the week timestamp
       `[end_time TimeDiff] ; difference from the week timestamp
       `[room Room]
