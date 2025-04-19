@@ -5,6 +5,7 @@
     (alias 'TimeWeek 'string) ; ISO 8601 week
     (alias 'TimeDiff 'string) ; ISO 8601 time difference
     (alias 'Id 'uint) ; universal-unique identifier for indexing
+    (array 'TimeWeeks 'TimeWeek)
 
     ; API Result type
     (enum 'Result<T>
@@ -100,10 +101,17 @@
     (array 'Spares 'Spare)
     
     ; init spare list
-    ; this will erase all existing spares
+    ; this should erase all existing spares
+    ; field `spares` contains the list of spares in a week (which means, schedule)
+    ; the backend should first store the schedule, for spare_list Schedule request
+    ; then, init spares in each week given in field `weeks`
+    ; the following fields in spare should be set by backend:
+    ; - id: db index
+    ; - week: the week in `weeks`, or anything for Schedule
     (api 'spare_init
       #:auth 'admin
       (type `SpareInitRequest
+        `[weeks TimeWeeks] ; list of weeks to init
         `[rooms Rooms]
         `[spares Spares])
       (enum `SpareInitResponse
