@@ -35,7 +35,7 @@
     (printf "export type ~a = ~a[]\n" name type)
     name)
   (define (option type)
-    (format "(~a | undefined)" (type-alias type)))
+    (format "(~a | null)" (type-alias type)))
   (define (alias name type)
     (printf "export type ~a = ~a\n" name (type-alias type))
     name)
