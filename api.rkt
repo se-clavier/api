@@ -22,10 +22,11 @@
       `[user]
       #:spec `(
         [rust-derive ,"sqlx::Type"]))
+    (array 'Roles 'Role)
 
     (type 'Auth
       `[id Id]
-      `[roles ,(array 'Roles 'Role)]
+      `[roles Roles]
       `[signature string])
     ; Template for authenticated requests
     (type 'Authed<T>
@@ -36,6 +37,13 @@
     (type 'User
       `[id Id]
       `[username string])
+    
+    ; User's full information, visible to admin
+    (type 'UserFull
+      `[id Id]
+      `[username string]
+      `[roles Roles])
+    (array 'UserFulls 'UserFull)
 
     ; User management
     (api 'register 
@@ -66,21 +74,31 @@
         `[Success]
         `[FailurePasswordInvalid]))
     
-    (api 'reset_password_admin
-      #:auth 'admin
-      (type `ResetPasswordAdminRequest
-        `[id Id]
-        `[password string])
-      (enum `ResetPasswordAdminResponse
-        `[Success]
-        `[FailureUserNotFound]))
-    
     (api 'test_auth_echo
       #:auth 'user 
       (type `TestAuthEchoRequest
         `[data string])
       (type `TestAuthEchoResponse
         `[data string]))
+    
+    ; Get all users for admin
+    (api 'users_list
+      #:auth 'admin
+      (type `UsersListRequest)
+      (type `UsersListResponse
+        `[users UserFulls]))
+
+    (api 'user_set
+      #:auth 'admin
+      (type `UserSetRequest
+        `[user_id Id]
+        `[operation 
+            ,(enum `UserSetValue
+              `[password string]
+              `[roles Roles]
+              `[delete])]) ; delete spam user
+      (enum `UserSetResponse
+        `[Success]))
   )
 
   (begin ; Spare
@@ -151,6 +169,16 @@
               `[Available]
               `[Unavailable]))])
       (enum `SpareQuestionaireResponse
+        `[Success]))
+    
+    ; spare set assignee
+    (api 'spare_set_assignee
+      #:auth 'admin
+      (type `SpareSetAssigneeRequest
+        `[id Id]
+        `[assignee 
+          ,(option 'User)]) ; none if not assigned
+      (type `SpareSetAssigneeResponse
         `[Success]))
   )
 

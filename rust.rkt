@@ -48,9 +48,9 @@
         (map
           (lambda (f)
             (match f
-              [`(,name) (format "~a" (type-alias name))]
-              [`(,name ,value)
-                (format "~a(~a)" name value)]))
+              [`(,name) (format "~a" name)]
+              [`(,name ,type)
+                (format "~a(~a)" name (type-alias type))]))
           fields)
         ", "))
     name)
