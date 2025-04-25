@@ -20,6 +20,7 @@
     (enum 'Role
       `[admin]
       `[user]
+      `[terminal]
       #:spec `(
         [rust-derive ,"sqlx::Type"]))
     (array 'Roles 'Role)
@@ -180,6 +181,49 @@
           ,(option 'User)]) ; none if not assigned
       (type `SpareSetAssigneeResponse
         `[Success]))
+  )
+  
+  (begin ; Check in
+
+    ; Get checkin Credential
+    ; Re-use Auth type
+    ; Backend should generate a signature for a very short time (e.g. 5 min)
+    ; Frontend will get this signature every 1 min
+    ; Then display it as a QR code
+    (api 'terminal_credential
+      #:auth 'terminal
+      (type `TerminalCredentialRequest)
+      (type `TerminalCredentialResponse
+        `[auth Auth]))
+    
+    ; User checkin
+    ; Backend should first validate the credential.
+    ; Then find ALL the spares whose `assignee` is the user,
+    ; and `start_time` is within [current_time - 30min, current_time + 30min],
+    ; and then, checkin all those spares
+    (api 'checkin
+      #:auth 'user
+      (type `CheckinRequest
+        `[credential Auth])
+      (type `CheckinResponse
+        ; list of spares that checked in
+        ; empty if no spare is checked in, and frontend should display an error
+        `[spares Spares])) 
+    
+    ; User checkout
+    ; Backend should first validate the credential.
+    ; Then find ALL the spares whose `assignee` is the user,
+    ; and `end_time` is within [current_time - 30min, end_of_current_day],
+    ; and has been previously checked in,
+    ; and then, checkout all those spares
+    (api 'checkout
+      #:auth 'user
+      (type `CheckoutRequest
+        `[credential Auth])
+      (type `CheckoutResponse
+        ; list of spares that checked out
+        ; empty if no spare is checked out, and frontend should display an error
+        `[spares Spares]))
   )
 
   (void))
