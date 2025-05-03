@@ -180,7 +180,7 @@
         `[id Id]
         `[assignee 
           ,(option 'User)]) ; none if not assigned
-      (type `SpareSetAssigneeResponse
+      (enum `SpareSetAssigneeResponse
         `[Success]))
   )
 
