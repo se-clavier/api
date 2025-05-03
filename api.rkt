@@ -2,6 +2,7 @@
 
 (define (api #:api api #:type type #:enum enum #:array array #:option option #:alias alias)
   (begin ; Common definitions
+    (alias 'TimeDate 'string) ; ISO 8601 time date
     (alias 'TimeWeek 'string) ; ISO 8601 week
     (alias 'TimeDiff 'string) ; ISO 8601 time difference
     (alias 'Id 'uint) ; universal-unique identifier for indexing
@@ -27,6 +28,7 @@
 
     (type 'Auth
       `[id Id]
+      `[expire TimeDate]
       `[roles Roles]
       `[signature string])
     ; Template for authenticated requests
@@ -179,7 +181,7 @@
         `[id Id]
         `[assignee 
           ,(option 'User)]) ; none if not assigned
-      (type `SpareSetAssigneeResponse
+      (enum `SpareSetAssigneeResponse
         `[Success]))
   )
   
