@@ -200,32 +200,33 @@
     
     ; User checkin
     ; Backend should first validate the credential.
-    ; Then find ALL the spares whose `assignee` is the user,
-    ; and `start_time` is within [current_time - 30min, current_time + 30min],
-    ; and then, checkin all those spares
     (api 'checkin
       #:auth 'user
       (type `CheckinRequest
-        `[credential Auth])
-      (type `CheckinResponse
-        ; list of spares that checked in
-        ; empty if no spare is checked in, and frontend should display an error
-        `[spares Spares])) 
+        `[credential Auth]
+        `[id Id])
+      (enum `CheckinResponse
+        `[Early] ; checkin time < start_time - 30min, checkin failed
+        `[Intime] ; checkin time in [start_time - 30min, start_time], checkin success
+        `[Late number] ; checkin time > start_time, checkin success but marked as late
+                       ; return late time, in minutes
+        `[Duplicate] ; already checked in, checkin failed
+      )) 
     
     ; User checkout
     ; Backend should first validate the credential.
-    ; Then find ALL the spares whose `assignee` is the user,
-    ; and `end_time` is within [current_time - 30min, end_of_current_day],
-    ; and has been previously checked in,
-    ; and then, checkout all those spares
     (api 'checkout
       #:auth 'user
       (type `CheckoutRequest
-        `[credential Auth])
-      (type `CheckoutResponse
-        ; list of spares that checked out
-        ; empty if no spare is checked out, and frontend should display an error
-        `[spares Spares]))
+        `[credential Auth]
+        `[id Id])
+      (enum `CheckoutResponse
+        `[Early] ; checkout time < start_time - 30min, checkout failed
+        `[Intime] ; checkout time in [start_time - 30min, end_of_day], checkout success
+        `[Late] ; checkout time > end_of_day, checkout failed
+        `[NotCheckedIn] ; not checked in, checkout failed
+        `[Duplicate] ; already checked out, checkout failed
+      ))
   )
 
   (void))
