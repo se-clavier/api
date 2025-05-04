@@ -198,6 +198,9 @@
       (type `TerminalCredentialResponse
         `[auth Auth]))
     
+    ; QR code content type (as JSON string)
+    (alias 'QRCodeContent 'Auth)
+    
     ; User checkin
     ; Backend should first validate the credential.
     (api 'checkin
