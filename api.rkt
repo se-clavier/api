@@ -21,6 +21,7 @@
     (enum 'Role
       `[admin]
       `[user]
+      `[terminal]
       #:spec `(
         [rust-derive ,"sqlx::Type"]))
     (array 'Roles 'Role)
@@ -182,6 +183,53 @@
           ,(option 'User)]) ; none if not assigned
       (enum `SpareSetAssigneeResponse
         `[Success]))
+  )
+  
+  (begin ; Check in
+
+    ; Get checkin Credential
+    ; Re-use Auth type
+    ; Backend should generate a signature for a very short time (e.g. 5 min)
+    ; Frontend will get this signature every 1 min
+    ; Then display it as a QR code
+    (api 'terminal_credential
+      #:auth 'terminal
+      (type `TerminalCredentialRequest)
+      (type `TerminalCredentialResponse
+        `[auth Auth]))
+    
+    ; QR code content type (as JSON string)
+    (alias 'QRCodeContent 'Auth)
+    
+    ; User checkin
+    ; Backend should first validate the credential.
+    (api 'checkin
+      #:auth 'user
+      (type `CheckinRequest
+        `[credential Auth]
+        `[id Id])
+      (enum `CheckinResponse
+        `[Early] ; checkin time < start_time - 30min, checkin failed
+        `[Intime] ; checkin time in [start_time - 30min, start_time], checkin success
+        `[Late number] ; checkin time > start_time, checkin success but marked as late
+                       ; return late time, in minutes
+        `[Duplicate] ; already checked in, checkin failed
+      )) 
+    
+    ; User checkout
+    ; Backend should first validate the credential.
+    (api 'checkout
+      #:auth 'user
+      (type `CheckoutRequest
+        `[credential Auth]
+        `[id Id])
+      (enum `CheckoutResponse
+        `[Early] ; checkout time < start_time - 30min, checkout failed
+        `[Intime] ; checkout time in [start_time - 30min, end_of_day], checkout success
+        `[Late] ; checkout time > end_of_day, checkout failed
+        `[NotCheckedIn] ; not checked in, checkout failed
+        `[Duplicate] ; already checked out, checkout failed
+      ))
   )
 
   (void))

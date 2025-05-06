@@ -4,6 +4,7 @@
 
 (define (type-alias type)
   (match type
+    ['number 'i64]
     ['uint "u64"]
     ['string "String"]
     [(? symbol? o) (symbol->string o)]
