@@ -183,6 +183,14 @@
           ,(option 'User)]) ; none if not assigned
       (enum `SpareSetAssigneeResponse
         `[Success]))
+    
+    ; trigger auto assignment for certain weeks
+    (api 'spare_trigger_assign
+      #:auth 'admin
+      (type `SpareAutoAssignRequest
+        `[weeks TimeWeeks])
+      (enum `SpareAutoAssignResponse
+        `[Success]))
   )
   
   (begin ; Check in
