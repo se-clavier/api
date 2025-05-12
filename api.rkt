@@ -217,6 +217,7 @@
         `[credential Auth]
         `[id Id])
       (enum `CheckinResponse
+        `[InvailidCredential]
         `[Early] ; checkin time < start_time - 30min, checkin failed
         `[Intime] ; checkin time in [start_time - 30min, start_time], checkin success
         `[Late number] ; checkin time > start_time, checkin success but marked as late
@@ -232,6 +233,7 @@
         `[credential Auth]
         `[id Id])
       (enum `CheckoutResponse
+        `[InvailidCredential]
         `[Early] ; checkout time < start_time - 30min, checkout failed
         `[Intime] ; checkout time in [start_time - 30min, end_of_day], checkout success
         `[Late] ; checkout time > end_of_day, checkout failed
