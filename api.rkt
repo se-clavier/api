@@ -118,6 +118,8 @@
       `[end_time TimeDiff] ; difference from the week timestamp
       `[room Room]
       `[assignee ,(option 'User)] ; none if not assigned
+      `[checkin ,(option 'number)] ; checked in by user, number is the late time in minutes
+      `[checkout ,(option 'number)] ; checked out by user, number is the early time in minutes
       )
     (array 'Spares 'Spare)
     
@@ -142,6 +144,7 @@
     (api 'spare_list
       #:auth 'user
       (enum `SpareListRequest
+        `[User] ; request the spare list for current user
         `[Schedule] ; request the spare schedule, used in spare_questionaire
         `[Week TimeWeek]) ; request the spare list at a certain week
       (type `SpareListResponse
@@ -234,9 +237,9 @@
         `[id Id])
       (enum `CheckoutResponse
         `[InvailidCredential]
-        `[Early] ; checkout time < start_time - 30min, checkout failed
-        `[Intime] ; checkout time in [start_time - 30min, end_of_day], checkout success
-        `[Late] ; checkout time > end_of_day, checkout failed
+        `[Early] ; checkout time < end_time - 30min, checkout failed
+        `[Intime] ; checkout time in [end_time - 30min, end_time + 30min], checkout success
+        `[Late] ; checkout time > end_time + 30min, checkout failed
         `[NotCheckedIn] ; not checked in, checkout failed
         `[Duplicate] ; already checked out, checkout failed
       ))
