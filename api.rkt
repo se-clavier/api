@@ -145,6 +145,7 @@
       #:auth 'user
       (enum `SpareListRequest
         `[User] ; request the spare list for current user
+        `[Assigned] ; request the spare list for assigned spares
         `[Schedule] ; request the spare schedule, used in spare_questionaire
         `[Week TimeWeek]) ; request the spare list at a certain week
       (type `SpareListResponse
