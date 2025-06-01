@@ -1,5 +1,59 @@
 #lang racket
 
+
+#|
+api.rkt doc
+
+Code Block (No Meaning):
+```rkt
+(begin ;
+;...
+)
+```
+
+Type Alias Define:
+```rkt
+(alias 'TypeAlias 'TypeName)
+```
+
+Enum Type Define:
+```rkt
+(enum 'EnumName
+  `[Variant1]
+  `[Variant2 DataType])
+  ;; `DataType` is optional, used to specify the data type of the variant
+  ;; `#:spec` is optional, used to specify additional Rust derive attributes 
+```
+
+Array Type Define:
+```rkt
+(array 'ArrayName 'ElementType)
+```
+
+Struct Type Define:
+```rkt
+(type 'TypeName
+  `[field1 Type1]
+  `[field2 Type2])
+```
+
+Option Type Define:
+```rkt
+(option 'TypeName)
+```
+
+API Define:
+```rkt
+(api 'api-name
+  `RequestType
+  `ResponseType)
+  ;; `RequestType` and `ResponseType` can be type, enum, array, or option
+  ;; `#:auth` is optional, used to specify the required role for the API, then the API request must be `Authed<RequestType>` with the specified role.
+    ; `#:auth` must be 'role-name.
+    ; when the `Authed<RequestType>` not have the required role or expired, the API will return `Unauthorized`
+```
+|#
+
 (define (api #:api api #:type type #:enum enum #:array array #:option option #:alias alias)
   (begin ; Common definitions
     (alias 'TimeDate 'string) ; ISO 8601 time date
@@ -10,8 +64,8 @@
 
     ; API Result type
     (enum 'Result<T>
-      `[Ok T]
-      `[Unauthorized])
+      `[Ok T] ; OK result with data of ResponseType
+      `[Unauthorized]) ; Request is unauthorized
   )
 
   (begin ; User
@@ -27,10 +81,11 @@
     (array 'Roles 'Role)
 
     (type 'Auth
-      `[id Id]
-      `[expire TimeDate]
-      `[roles Roles]
+      `[id Id] ; user id
+      `[expire TimeDate] ; expiration time of the auth token
+      `[roles Roles] ; roles of the user
       `[signature string])
+
     ; Template for authenticated requests
     (type 'Authed<T>
       `[auth Auth]
@@ -66,7 +121,20 @@
       (enum `LoginResponse
         `[Success Auth] 
         `[FailureIncorrect]))
-    
+    #|example
+      LoginRequest {
+        username: "testuser", // username
+        password: "password123", // password
+      }
+      =>
+      LoginResponse::Success(Auth {
+        id: 1, // user id
+        expire: ...,
+        roles: [Role::user, ...], // user roles
+        signature: ...,
+      })
+    |#
+
     (api 'get_user `Id `User)
     
     (api 'reset_password
@@ -77,6 +145,7 @@
         `[Success]
         `[FailurePasswordInvalid]))
     
+    ; used for testing auth
     (api 'test_auth_echo
       #:auth 'user 
       (type `TestAuthEchoRequest
@@ -139,6 +208,24 @@
         `[spares Spares])
       (enum `SpareInitResponse
         `[Success]))
+    #|example
+      SpareInitRequest {
+        weeks: ["2023-W01", ...], // list of weeks to init
+        rooms: ["room1", ...], // list of rooms
+        spares: [
+          Spare {
+            stamp: 0, // index in the week
+            begin_time: "PT08H00M", // 8:00 AM
+            end_time: "PT10H00M", // 10:00 AM
+            room: "room1", // room name
+            assignee: none, // no assignee
+            ... // other fields are set by backend
+          },...
+        ]
+      }
+      =>
+      SpareInitResponse::Success
+    |#
 
     ; list all rooms and spares within a time range
     (api 'spare_list
@@ -221,13 +308,26 @@
         `[credential Auth]
         `[id Id])
       (enum `CheckinResponse
-        `[InvailidCredential]
+        `[InvailidCredential] ; credential is invalid or expired
         `[Early] ; checkin time < start_time - 30min, checkin failed
         `[Intime] ; checkin time in [start_time - 30min, start_time], checkin success
         `[Late number] ; checkin time > start_time, checkin success but marked as late
                        ; return late time, in minutes
         `[Duplicate] ; already checked in, checkin failed
       )) 
+    #|example
+      CheckinRequest {
+        credential: Auth {
+          id: 2, // terminal id
+          expire: ..., // expiration time of the auth token
+          roles: [Role::terminal, ...], // user roles
+          signature: ..., // signature for the QR code
+        },
+        id: 1, // spare id
+      }
+      =>
+      CheckinResponse::Intime // or Early, Late, Duplicate, InvailidCredential
+    |#
     
     ; User checkout
     ; Backend should first validate the credential.
@@ -237,7 +337,7 @@
         `[credential Auth]
         `[id Id])
       (enum `CheckoutResponse
-        `[InvailidCredential]
+        `[InvailidCredential] ; credential is invalid or expired
         `[Early] ; checkout time < end_time - 30min, checkout failed
         `[Intime] ; checkout time in [end_time - 30min, end_time + 30min], checkout success
         `[Late] ; checkout time > end_time + 30min, checkout failed
